@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Öffi Monitor Wien Ambient</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Mono:wght@700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Tiefere, sattere Hintergründe */
+            --bg: #000103;
+            --bg-capsule: rgba(0, 0, 0, 0.5);
+            --panel: rgba(255, 255, 255, 0.015);
+            --border: rgba(255, 255, 255, 0.05);
+            --border-strong: rgba(255, 255, 255, 0.08);
+
+            /* Textfarben */
+            --text: #ffffff;
+            --text-soft: #8a91a1;
+            --text-muted: #535a6b;
+
+            /* Akzentfarben (Juwelen-Look) */
+            --green: #00f098;
+            --tram: #e61428;
+            --tram-glow: rgba(230, 20, 40, 0.3);
+            --bus: #1a73e8;
+            --bus-glow: rgba(26, 115, 232, 0.3);
+            --ubahn-u3: #ff6a00;
+            --ubahn-u3-glow: rgba(255, 106, 0, 0.3);
+
+            /* Layout & Effekte */
+            --shadow-hard: 0 10px 30px rgba(0, 0, 0, 0.7);
+            --radius-xl: 36px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ambient Background Glows */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            pointer-events: none;
+            filter: blur(120px);
+            z-index: 0;
+            opacity: 0.15;
+            animation: slowMove 30s ease-in-out infinite;
+        }
+
+        body::before {
+            width: 500px;
+            height: 500px;
+            top: -200px;
+            right: -100px;
+            background: var(--ubahn-u3);
+        }
+
+        body::after {
+            width: 400px;
+            height: 400px;
+            bottom: -150px;
+            left: -100px;
+            background: var(--bus);
+            animation-delay: -10s;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- TOPBAR --- */
+        .topbar {
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .clock-wrap {
+            margin-bottom: 12px;
+        }
+
+        #clock {
+            font-size: clamp(3.5rem, 14vw, 5rem);
+            font-weight: 800;
+            line-height: 0.85;
+            letter-spacing: -0.06em;
+            font-variant-numeric: tabular-nums;
+            /* Silber-Gradient für die Uhr */
+            background: linear-gradient(180deg, #ffffff 0%, #a1a8b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+        }
+
+        #dateLine {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 6px 14px;
+            background: var(--bg-capsule);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--text-soft);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .sync-capsule {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border);
+            border-top: 1px solid var(--border-strong);
+            box-shadow: var(--shadow-hard);
+            margin-top: 10px;
+        }
+
+        .sync-dot-ambient {
+            position: relative;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .sync-dot-ambient::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: var(--green);
+            opacity: 0.3;
+            filter: blur(6px);
+            animation: syncPulse 2s ease-in-out infinite;
+        }
+
+        .sync-label-soft {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        #lastUpdate {
+            color: var(--text);
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --- DASHBOARD KACHELN --- */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .station-card {
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            background: #0d0f14;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-hard);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px 12px;
+            /* Smoother Slide-In */
+            animation: cardIn 0.6s cubic-bezier(0.19, 1, 0.22, 1) both;
+        }
+
+        /* The Moving Border (Umlaufendes Licht) */
+        .station-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            /* Border thickness */
+            border-radius: inherit;
+            background: conic-gradient(from var(--border-angle), transparent 70%, var(--accent), transparent 90%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            animation: borderRotate 6s linear infinite;
+        }
+
+        /* Ambient Glow hinter der Kachel */
+        .station-card::after {
+            content: "";
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.08;
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+        .station-card.tram {
+            --accent: var(--tram);
+        }
+
+        .station-card.bus {
+            --accent: var(--bus);
+        }
+
+        .station-card.ubahn.u3 {
+            --accent: var(--ubahn-u3);
+        }
+
+        .station-card.missing {
+            --accent: #333;
+            --border-angle: 0deg;
+        }
+
+        /* No rotate animation for missing */
+
+        .card-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .line-block {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Die 3D Glow-Pille */
+        .line-badge-ambient {
+            min-width: 74px;
+            height: 56px;
+            padding: 0 14px;
+            border-radius: var(--radius-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            color: #ffffff;
+            background: #000;
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .line-badge-ambient::before {
+            content: "";
+            position: absolute;
+            inset: -10px;
+            background: var(--accent);
+            opacity: 0.3;
+            filter: blur(12px);
+            z-index: 0;
+        }
+
+        .line-badge-ambient span {
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .type-capsule {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .type-capsule svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+        }
+
+        .info {
+            min-width: 0;
+        }
+
+        .station-tag {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .direction {
+            color: var(--text);
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+            word-break: break-word;
+        }
+
+        .data-row {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .data-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            color: var(--text-soft);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .data-pill::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent, #666);
+            box-shadow: 0 0 5px var(--accent);
+        }
+
+        .time-panel {
+            min-width: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+            text-align: right;
+        }
+
+        /* Die kranke Space-Mono-Zahl */
+        .time-value-mono {
+            font-family: 'Space Mono', monospace;
+            font-size: 3.5rem;
+            line-height: 0.8;
+            font-weight: 700;
+            letter-spacing: -0.1em;
+            color: var(--text);
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .time-value-mono.soon {
+            color: var(--green);
+            text-shadow: 0 0 15px rgba(0, 240, 152, 0.4);
+        }
+
+        .time-unit-cap {
+            font-size: 0.8rem;
+            color: var(--text-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 700;
+        }
+
+        .next-options {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 6px;
+            margin-top: 2px;
+            position: relative;
+        }
+
+        .next-options::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        }
+
+        .next-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border);
+            color: var(--text-soft);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .next-pill strong {
+            font-family: 'Space Mono', monospace;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .secondary-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-right: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .loading-card,
+        .error-msg {
+            padding: 40px 20px;
+            border-radius: var(--radius-lg);
+            background: #0d0f14;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-hard);
+            text-align: center;
+            color: var(--text-soft);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .error-msg {
+            color: #ff6e6e;
+            border-color: rgba(255, 110, 110, 0.3);
+        }
+
+        /* --- KRANKE ANIMATIONEN --- */
+        @property --border-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        @keyframes borderRotate {
+            from {
+                --border-angle: 0deg;
+            }
+
+            to {
+                --border-angle: 360deg;
+            }
+        }
+
+        @keyframes slowMove {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(50px, -50px) rotate(5deg);
+            }
+        }
+
+        @keyframes syncPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.1;
+            }
+        }
+
+        @keyframes cardIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95) rotateX(-10deg);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+            }
+        }
+
+        /* Staggered Delay for Cards */
+        .station-card:nth-child(1) {
+            animation-delay: 0.0s;
+        }
+
+        .station-card:nth-child(2) {
+            animation-delay: 0.05s;
+        }
+
+        .station-card:nth-child(3) {
+            animation-delay: 0.1s;
+        }
+
+        .station-card:nth-child(4) {
+            animation-delay: 0.15s;
+        }
+
+        .station-card:nth-child(5) {
+            animation-delay: 0.2s;
+        }
+
+        .station-card:nth-child(6) {
+            animation-delay: 0.25s;
+        }
+
+        .station-card:nth-child(7) {
+            animation-delay: 0.3s;
+        }
+
+        @media (max-width: 390px) {
+            body {
+                padding: 16px 10px 24px;
+            }
+
+            .topbar {
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+
+            .topbar-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 14px;
+            }
+
+            .sync-capsule {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .station-card {
+                padding: 16px;
+                gap: 14px 10px;
+            }
+
+            .line-badge-ambient {
+                min-width: 64px;
+                height: 50px;
+                font-size: 1.5rem;
+                border-radius: 12px;
+            }
+
+            .direction {
+                font-size: 1.2rem;
+            }
+
+            .time-value-mono {
+                font-size: 2.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="app">
+        <section class="topbar">
+            <div class="topbar-row">
+                <div class="clock-wrap">
+                    <div id="clock">--:--</div>
+                    <div id="dateLine">Lade Datum...</div>
+                </div>
+
+                <div class="sync-capsule">
+                    <div class="sync-dot-ambient"></div>
+                    <div class="sync-copy">
+                        <span class="sync-label-soft">Transit Synced</span>
+                        <span id="lastUpdate">Lade Daten...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard" class="dashboard">
+            <div class="loading-card">Initialisiere Datenfeed...</div>
+        </section>
+    </main>
+
+    <script>
+        const meineStationen = [
+            { rbl: "571", linie: "10", richtung: "Unter St. Veit", name: "Linzer Straße" },
+            { rbl: "578", linie: "10", richtung: "Dornbach", name: "Linzer Straße" },
+            { rbl: "571", linie: "52", richtung: "Westbahnhof", name: "Linzer Straße" },
+            { rbl: "578", linie: "52", richtung: "Baumgarten", name: "Linzer Straße" },
+            { rbl: "902", linie: "10A", richtung: "Niederhofstraße", name: "Linzer Straße" },
+            { rbl: "879", linie: "10A", richtung: "Heiligenstadt", name: "Linzer Straße" },
+            { rbl: "4933", linie: "U3", richtung: "Simmering", name: "Hütteldorfer Straße" }
+        ];
+
+        function baueApiUrls() {
+            const rbls = [...new Set(meineStationen.map(station => station.rbl))];
+            const params = rbls.map(id => `rbl=${encodeURIComponent(id)}`).join("&");
+            const wlUrl = `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`;
+
+            return [
+                wlUrl,
+                "https://corsproxy.io/?" + encodeURIComponent(wlUrl)
+            ];
+        }
+
+        function bestimmeKachelTyp(linie) {
+            if (linie.startsWith("U")) return "ubahn " + linie.toLowerCase();
+            if (linie.endsWith("A") || linie.endsWith("B")) return "bus";
+            return "tram";
+        }
+
+        function holeTypIcon(linie) {
+            if (linie.startsWith("U")) {
+                return `
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="4" y="4" width="16" height="16" rx="5"></rect>
+                        <path d="M8 9v4a4 4 0 0 0 8 0V9"></path>
+                    </svg>
+                `;
+            }
+
+            if (linie.endsWith("A") || linie.endsWith("B")) {
+                return `
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="4" y="6" width="16" height="12" rx="3"></rect>
+                        <path d="M7 18h2M15 18h2M4 12h16"></path>
+                    </svg>
+                `;
+            }
+
+            return `
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="5" y="5" width="14" height="12" rx="2.5"></rect>
+                    <path d="M8 17v3M16 17v3M6 10h12M10 5v2m4-2v2"></path>
+                </svg>
+            `;
+        }
+
+        function formatGroßeZeit(min) {
+            if (min === undefined || min === null || min === "—") return "—";
+            const num = Number(min);
+            if (Number.isNaN(num)) return String(min);
+            if (num <= 0) return "0";
+            return String(num);
+        }
+
+        function formatZeitEinheit(min) {
+            if (min === undefined || min === null || min === "—") return "";
+            const num = Number(min);
+            if (!Number.isNaN(num) && num <= 0) return "SOFORT";
+            return "MIN";
+        }
+
+        function istBald(min) {
+            const num = Number(min);
+            return !Number.isNaN(num) && num <= 3;
+        }
+
+        // HIER IST DER FIX: Die Tags sind jetzt sauberes HTML!
+        function erstelleSecondaryPills(zweiteZeit, dritteZeit) {
+            const pills = [];
+
+            if (zweiteZeit !== undefined && zweiteZeit !== null) {
+                pills.push(`<div class="next-pill"><span class="secondary-label">Nächste</span> <strong>${zweiteZeit} min</strong></div>`);
+            }
+
+            if (dritteZeit !== undefined && dritteZeit !== null) {
+                pills.push(`<div class="next-pill"><span class="secondary-label">Dann</span> <strong>${dritteZeit} min</strong></div>`);
+            }
+
+            if (pills.length === 0) {
+                pills.push(`<div class="next-pill"><span class="secondary-label">Keine weiteren Daten</span></div>`);
+            }
+
+            return pills.join("");
+        }
+
+        function erstelleKachel(wunsch, zeit, zweiteZeit, dritteZeit, istFehlend = false, infoText = "") {
+            const typKlasse = bestimmeKachelTyp(wunsch.linie);
+            const timeClass = istBald(zeit) && !istFehlend ? "time-value-mono soon" : "time-value-mono";
+
+            const kachel = document.createElement("div");
+            kachel.className = `station-card ${typKlasse} ${istFehlend ? "missing" : ""}`;
+
+            kachel.innerHTML = `
+                <div class="card-main">
+                    <div class="line-block">
+                        <div class="line-badge-ambient"><span>${wunsch.linie}</span></div>
+                        <div class="type-capsule">${holeTypIcon(wunsch.linie)}</div>
+                    </div>
+
+                    <div class="info">
+                        <div class="station-tag">${wunsch.name}</div>
+                        <div class="direction">${wunsch.richtung}</div>
+                        <div class="data-row">
+                            <div class="data-pill">RBL ${wunsch.rbl}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="time-panel">
+                    <div class="${timeClass}">${formatGroßeZeit(zeit)}</div>
+                    <div class="time-unit-cap">${istFehlend ? "" : formatZeitEinheit(zeit)}</div>
+                </div>
+
+                <div class="next-options">
+                    ${istFehlend
+                    ? `<div class="next-pill"><span class="secondary-label">${infoText || "Fehlerhaft"}</span></div>`
+                    : erstelleSecondaryPills(zweiteZeit, dritteZeit)
+                }
+                </div>
+            `;
+
+            return kachel;
+        }
+
+        async function ladeApiDaten() {
+            const apiUrls = baueApiUrls();
+            let letzterFehler = null;
+
+            for (const url of apiUrls) {
+                try {
+                    const response = await fetch(url, { cache: "no-store" });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const json = await response.json();
+
+                    if (!json?.data?.monitors) {
+                        throw new Error("Ungültige API-Antwort");
+                    }
+
+                    return json;
+                } catch (error) {
+                    letzterFehler = error;
+                }
+            }
+
+            throw new Error("API-Verbindung fehlgeschlagen");
+        }
+
+        function findePassendeLinie(linien, wunsch) {
+            return linien.find(l => String(l.name) === String(wunsch.linie));
+        }
+
+        async function holeAbfahrten() {
+            const dashboardContainer = document.getElementById("dashboard");
+            const lastUpdate = document.getElementById("lastUpdate");
+
+            try {
+                const json = await ladeApiDaten();
+                const monitors = json.data?.monitors || [];
+
+                dashboardContainer.innerHTML = "";
+
+                meineStationen.forEach(wunsch => {
+                    let gefundeneLinie = null;
+                    let gesammelteLinien = [];
+
+                    for (const m of monitors) {
+                        const apiRbl =
+                            m.locationStop?.properties?.attributes?.rbl ||
+                            m.locationStop?.properties?.name;
+
+                        if (String(apiRbl) !== String(wunsch.rbl)) continue;
+
+                        const linien = m.lines || [];
+                        linien.forEach(l => gesammelteLinien.push(`${l.name} → ${l.towards}`));
+
+                        const match = findePassendeLinie(linien, wunsch);
+
+                        if (match) {
+                            gefundeneLinie = match;
+                            break;
+                        }
+                    }
+
+                    if (!gefundeneLinie) {
+                        const infoText = gesammelteLinien.length > 0
+                            ? gesammelteLinien.join(" | ")
+                            : `Offline`;
+
+                        dashboardContainer.appendChild(
+                            erstelleKachel(wunsch, "—", undefined, undefined, true, infoText)
+                        );
+                        return;
+                    }
+
+                    const abfahrtenArray = gefundeneLinie.departures?.departure || [];
+                    const naechsteAbfahrt = abfahrtenArray[0]?.departureTime?.countdown ?? "—";
+                    const zweiteAbfahrt = abfahrtenArray[1]?.departureTime?.countdown;
+                    const dritteAbfahrt = abfahrtenArray[2]?.departureTime?.countdown;
+
+                    dashboardContainer.appendChild(
+                        erstelleKachel(wunsch, naechsteAbfahrt, zweiteAbfahrt, dritteAbfahrt, false)
+                    );
+                });
+
+                lastUpdate.textContent = new Date().toLocaleTimeString("de-AT", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
+
+            } catch (fehler) {
+                dashboardContainer.innerHTML = `
+                    <div class="error-msg">
+                        <strong>DATA FEED OFFLINE</strong><br>
+                        Prüfe Verbindung.
+                    </div>
+                `;
+                lastUpdate.textContent = "Offline";
+            }
+        }
+
+        function aktualisiereUhr() {
+            const jetzt = new Date();
+
+            document.getElementById("clock").textContent = jetzt.toLocaleTimeString("de-AT", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+
+            document.getElementById("dateLine").textContent = jetzt.toLocaleDateString("de-AT", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long"
+            });
+        }
+
+        aktualisiereUhr();
+        setInterval(aktualisiereUhr, 1000);
+
+        holeAbfahrten();
+        // Alle 10 Sekunden updaten
+        setInterval(holeAbfahrten, 10000);
+    </script>
+</body>
+
+</html>
