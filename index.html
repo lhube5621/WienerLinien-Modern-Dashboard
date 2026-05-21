@@ -4,38 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Öffi Monitor Wien Ambient</title>
+    <title>Öffi Monitor Wien Ambient Smooth</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Mono:wght@700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            /* Tiefere, sattere Hintergründe */
             --bg: #000103;
-            --bg-capsule: rgba(0, 0, 0, 0.5);
-            --panel: rgba(255, 255, 255, 0.015);
+            --bg-capsule: #07090e;
+            --panel: #0d0f14; /* Feste Farbe statt transparentem Glassmorphism */
             --border: rgba(255, 255, 255, 0.05);
             --border-strong: rgba(255, 255, 255, 0.08);
-
-            /* Textfarben */
+            
             --text: #ffffff;
             --text-soft: #8a91a1;
             --text-muted: #535a6b;
-
-            /* Akzentfarben (Juwelen-Look) */
+            
             --green: #00f098;
             --tram: #e61428;
-            --tram-glow: rgba(230, 20, 40, 0.3);
             --bus: #1a73e8;
-            --bus-glow: rgba(26, 115, 232, 0.3);
             --ubahn-u3: #ff6a00;
-            --ubahn-u3-glow: rgba(255, 106, 0, 0.3);
-
-            /* Layout & Effekte */
+            
             --shadow-hard: 0 10px 30px rgba(0, 0, 0, 0.7);
             --radius-xl: 36px;
             --radius-lg: 20px;
@@ -48,8 +39,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html,
-        body {
+        html, body {
             margin: 0;
             min-height: 100vh;
             background-color: var(--bg);
@@ -59,33 +49,30 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Ambient Background Glows */
-        body::before,
-        body::after {
+        /* Statischer Ambient-Glow (Keine Performance-Fressende Animation) */
+        body::before, body::after {
             content: "";
             position: fixed;
             pointer-events: none;
             filter: blur(120px);
             z-index: 0;
-            opacity: 0.15;
-            animation: slowMove 30s ease-in-out infinite;
+            opacity: 0.12;
         }
 
         body::before {
-            width: 500px;
-            height: 500px;
-            top: -200px;
-            right: -100px;
+            width: 400px;
+            height: 400px;
+            top: -150px;
+            right: -50px;
             background: var(--ubahn-u3);
         }
 
         body::after {
-            width: 400px;
-            height: 400px;
-            bottom: -150px;
-            left: -100px;
+            width: 300px;
+            height: 300px;
+            bottom: -100px;
+            left: -50px;
             background: var(--bus);
-            animation-delay: -10s;
         }
 
         .app {
@@ -97,7 +84,6 @@
             z-index: 1;
         }
 
-        /* --- TOPBAR --- */
         .topbar {
             margin-bottom: 30px;
             text-align: center;
@@ -106,21 +92,14 @@
             align-items: center;
         }
 
-        .clock-wrap {
-            margin-bottom: 12px;
-        }
-
         #clock {
             font-size: clamp(3.5rem, 14vw, 5rem);
             font-weight: 800;
             line-height: 0.85;
             letter-spacing: -0.06em;
             font-variant-numeric: tabular-nums;
-            /* Silber-Gradient für die Uhr */
-            background: linear-gradient(180deg, #ffffff 0%, #a1a8b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+            color: #ffffff;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
         }
 
         #dateLine {
@@ -143,30 +122,18 @@
             gap: 12px;
             padding: 10px 16px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.015);
+            background: var(--bg-capsule);
             border: 1px solid var(--border);
-            border-top: 1px solid var(--border-strong);
             box-shadow: var(--shadow-hard);
             margin-top: 10px;
         }
 
         .sync-dot-ambient {
-            position: relative;
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: var(--green);
-        }
-
-        .sync-dot-ambient::after {
-            content: "";
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            background: var(--green);
-            opacity: 0.3;
-            filter: blur(6px);
-            animation: syncPulse 2s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--green);
         }
 
         .sync-label-soft {
@@ -186,78 +153,31 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* --- DASHBOARD KACHELN --- */
         .dashboard {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
+        /* FIX: Fester Hintergrund und statischer Rahmen (Kein Ruckeln!) */
         .station-card {
             position: relative;
             overflow: hidden;
             padding: 20px;
             border-radius: var(--radius-lg);
-            background: #0d0f14;
+            background: var(--panel);
             border: 1px solid var(--border);
+            border-left: 5px solid var(--accent); /* Festes, leuchtendes Band links */
             box-shadow: var(--shadow-hard);
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 16px 12px;
-            /* Smoother Slide-In */
-            animation: cardIn 0.6s cubic-bezier(0.19, 1, 0.22, 1) both;
         }
 
-        /* The Moving Border (Umlaufendes Licht) */
-        .station-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            padding: 2px;
-            /* Border thickness */
-            border-radius: inherit;
-            background: conic-gradient(from var(--border-angle), transparent 70%, var(--accent), transparent 90%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            animation: borderRotate 6s linear infinite;
-        }
-
-        /* Ambient Glow hinter der Kachel */
-        .station-card::after {
-            content: "";
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: var(--accent);
-            opacity: 0.08;
-            filter: blur(40px);
-            pointer-events: none;
-        }
-
-        .station-card.tram {
-            --accent: var(--tram);
-        }
-
-        .station-card.bus {
-            --accent: var(--bus);
-        }
-
-        .station-card.ubahn.u3 {
-            --accent: var(--ubahn-u3);
-        }
-
-        .station-card.missing {
-            --accent: #333;
-            --border-angle: 0deg;
-        }
-
-        /* No rotate animation for missing */
+        .station-card.tram { var(--accent: var(--tram)); box-shadow: 0 4px 20px rgba(230, 20, 40, 0.08); }
+        .station-card.bus { var(--accent: var(--bus)); box-shadow: 0 4px 20px rgba(26, 115, 232, 0.08); }
+        .station-card.ubahn.u3 { var(--accent: var(--ubahn-u3)); box-shadow: 0 4px 20px rgba(255, 106, 0, 0.08); }
+        .station-card.missing { var(--accent: #333;); }
 
         .card-main {
             display: flex;
@@ -274,7 +194,6 @@
             gap: 10px;
         }
 
-        /* Die 3D Glow-Pille */
         .line-badge-ambient {
             min-width: 74px;
             height: 56px;
@@ -289,24 +208,11 @@
             color: #ffffff;
             background: #000;
             position: relative;
-            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
-            overflow: hidden;
-        }
-
-        .line-badge-ambient::before {
-            content: "";
-            position: absolute;
-            inset: -10px;
-            background: var(--accent);
-            opacity: 0.3;
-            filter: blur(12px);
-            z-index: 0;
+            border: 1px solid var(--border);
         }
 
         .line-badge-ambient span {
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 0 10px var(--accent);
+            text-shadow: 0 0 8px var(--accent);
         }
 
         .type-capsule {
@@ -315,7 +221,7 @@
             border-radius: 50%;
             display: grid;
             place-items: center;
-            background: rgba(255, 255, 255, 0.01);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border);
             color: var(--text-muted);
         }
@@ -324,10 +230,6 @@
             width: 16px;
             height: 16px;
             stroke: currentColor;
-        }
-
-        .info {
-            min-width: 0;
         }
 
         .station-tag {
@@ -375,7 +277,6 @@
             height: 6px;
             border-radius: 50%;
             background: var(--accent, #666);
-            box-shadow: 0 0 5px var(--accent);
         }
 
         .time-panel {
@@ -388,7 +289,6 @@
             text-align: right;
         }
 
-        /* Die kranke Space-Mono-Zahl */
         .time-value-mono {
             font-family: 'Space Mono', monospace;
             font-size: 3.5rem;
@@ -396,12 +296,10 @@
             font-weight: 700;
             letter-spacing: -0.1em;
             color: var(--text);
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
 
         .time-value-mono.soon {
             color: var(--green);
-            text-shadow: 0 0 15px rgba(0, 240, 152, 0.4);
         }
 
         .time-unit-cap {
@@ -419,17 +317,7 @@
             flex-wrap: wrap;
             padding-top: 6px;
             margin-top: 2px;
-            position: relative;
-        }
-
-        .next-options::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            border-top: 1px solid var(--border);
         }
 
         .next-pill {
@@ -438,7 +326,7 @@
             gap: 8px;
             padding: 9px 12px;
             border-radius: var(--radius-sm);
-            background: rgba(255, 255, 255, 0.01);
+            background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border);
             color: var(--text-soft);
             font-size: 0.8rem;
@@ -460,148 +348,28 @@
             letter-spacing: 0.05em;
         }
 
-        .loading-card,
-        .error-msg {
+        .loading-card, .error-msg {
             padding: 40px 20px;
             border-radius: var(--radius-lg);
-            background: #0d0f14;
+            background: var(--panel);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-hard);
             text-align: center;
             color: var(--text-soft);
             font-weight: 600;
-            letter-spacing: 0.02em;
         }
 
-        .error-msg {
-            color: #ff6e6e;
-            border-color: rgba(255, 110, 110, 0.3);
-        }
-
-        /* --- KRANKE ANIMATIONEN --- */
-        @property --border-angle {
-            syntax: '<angle>';
-            initial-value: 0deg;
-            inherits: false;
-        }
-
-        @keyframes borderRotate {
-            from {
-                --border-angle: 0deg;
-            }
-
-            to {
-                --border-angle: 360deg;
-            }
-        }
-
-        @keyframes slowMove {
-
-            0%,
-            100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-
-            50% {
-                transform: translate(50px, -50px) rotate(5deg);
-            }
-        }
-
-        @keyframes syncPulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.3;
-            }
-
-            50% {
-                transform: scale(1.5);
-                opacity: 0.1;
-            }
-        }
-
-        @keyframes cardIn {
-            0% {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95) rotateX(-10deg);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1) rotateX(0deg);
-            }
-        }
-
-        /* Staggered Delay for Cards */
-        .station-card:nth-child(1) {
-            animation-delay: 0.0s;
-        }
-
-        .station-card:nth-child(2) {
-            animation-delay: 0.05s;
-        }
-
-        .station-card:nth-child(3) {
-            animation-delay: 0.1s;
-        }
-
-        .station-card:nth-child(4) {
-            animation-delay: 0.15s;
-        }
-
-        .station-card:nth-child(5) {
-            animation-delay: 0.2s;
-        }
-
-        .station-card:nth-child(6) {
-            animation-delay: 0.25s;
-        }
-
-        .station-card:nth-child(7) {
-            animation-delay: 0.3s;
-        }
+        .error-msg { color: #ff6e6e; }
 
         @media (max-width: 390px) {
-            body {
-                padding: 16px 10px 24px;
-            }
-
-            .topbar {
-                padding: 16px;
-                margin-bottom: 20px;
-            }
-
-            .topbar-row {
-                flex-direction: column;
-                align-items: center;
-                gap: 14px;
-            }
-
-            .sync-capsule {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .station-card {
-                padding: 16px;
-                gap: 14px 10px;
-            }
-
-            .line-badge-ambient {
-                min-width: 64px;
-                height: 50px;
-                font-size: 1.5rem;
-                border-radius: 12px;
-            }
-
-            .direction {
-                font-size: 1.2rem;
-            }
-
-            .time-value-mono {
-                font-size: 2.8rem;
-            }
+            body { padding: 16px 10px 24px; }
+            .topbar { margin-bottom: 20px; }
+            .topbar-row { flex-direction: column; align-items: center; gap: 14px; }
+            .sync-capsule { width: 100%; justify-content: center; }
+            .station-card { padding: 16px; gap: 14px 10px; }
+            .line-badge-ambient { min-width: 64px; height: 50px; font-size: 1.5rem; border-radius: 12px; }
+            .direction { font-size: 1.2rem; }
+            .time-value-mono { font-size: 2.8rem; }
         }
     </style>
 </head>
@@ -705,7 +473,6 @@
             return !Number.isNaN(num) && num <= 3;
         }
 
-        // HIER IST DER FIX: Die Tags sind jetzt sauberes HTML!
         function erstelleSecondaryPills(zweiteZeit, dritteZeit) {
             const pills = [];
 
@@ -883,7 +650,6 @@
         setInterval(aktualisiereUhr, 1000);
 
         holeAbfahrten();
-        // Alle 10 Sekunden updaten
         setInterval(holeAbfahrten, 10000);
     </script>
 </body>
