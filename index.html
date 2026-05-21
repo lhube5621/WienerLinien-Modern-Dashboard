@@ -327,12 +327,17 @@
             { rbl: "4933", linie: "U3", richtung: "Simmering", name: "Hütteldorfer Straße" }
         ];
 
+        // FIX: Kaskadierende Proxy-Liste eingebaut, falls einer blockiert oder offline ist
         function baueApiUrls() {
             const rbls = [...new Set(meineStationen.map(station => station.rbl))];
             const params = rbls.map(id => `rbl=${encodeURIComponent(id)}`).join("&");
+            const wlUrl = `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`;
+
             return [
-                `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`,
-                "https://corsproxy.io/?" + encodeURIComponent(`https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`)
+                wlUrl, // 1. Direkter Aufruf
+                "https://corsproxy.io/?" + encodeURIComponent(wlUrl), // 2. Haupt-Proxy
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(wlUrl), // 3. Backup-Proxy (Cache-sicher)
+                "https://thingproxy.freeboard.io/fetch/" + wlUrl // 4. Letzter Notnagel
             ];
         }
 
@@ -413,6 +418,7 @@
             return kachel;
         }
 
+        // FIX: Geht alle Proxys nacheinander durch, falls einer offline meldet
         async function ladeApiDaten() {
             const apiUrls = baueApiUrls();
             let letzterFehler = null;
@@ -423,7 +429,9 @@
                     const json = await response.json();
                     if (!json?.data?.monitors) throw new Error("Ungültige API");
                     return json;
-                } catch (error) { letzterFehler = error; }
+                } catch (error) { 
+                    letzterFehler = error; 
+                }
             }
             throw new Error(letzterFehler?.message || "Fehler");
         }
