@@ -480,7 +480,12 @@
 
                 lastUpdate.textContent = new Date().toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
             } catch (fehler) {
-                dashboardContainer.innerHTML = `<div class="error-msg"><strong>FEED OFFLINE</strong></div>`;
+                dashboardContainer.innerHTML = `
+                    <div class="error-msg">
+                        <strong>Keine Verbindung zu den Echtzeitdaten</strong><br>
+                        <span style="font-size:0.8rem; color:#b0b8c9;">${fehler.message}</span>
+                    </div>
+                `;
                 lastUpdate.textContent = "Fehler";
             }
         }
