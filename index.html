@@ -4,31 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Öffi Monitor Wien Ambient Smooth</title>
+    <title>Öffi Monitor Wien Kompakt-Grid</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg: #000103;
+            /* Edler, leicht aufgehellter Deep-Dark Hintergrund */
+            --bg: #0d1117;
             --bg-capsule: #07090e;
-            --panel: #0d0f14; /* Feste Farbe statt transparentem Glassmorphism */
-            --border: rgba(255, 255, 255, 0.05);
-            --border-strong: rgba(255, 255, 255, 0.08);
+            --panel: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(255, 255, 255, 0.15);
             
+            /* Text */
             --text: #ffffff;
-            --text-soft: #8a91a1;
-            --text-muted: #535a6b;
+            --text-soft: #b0b8c9;
+            --text-muted: #6e7688;
             
+            /* Farben mit Glow-Effekt */
             --green: #00f098;
             --tram: #e61428;
             --bus: #1a73e8;
             --ubahn-u3: #ff6a00;
             
-            --shadow-hard: 0 10px 30px rgba(0, 0, 0, 0.7);
-            --radius-xl: 36px;
+            --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.4);
+            --radius-xl: 28px;
             --radius-lg: 20px;
             --radius-md: 14px;
             --radius-sm: 10px;
@@ -43,334 +46,249 @@
             margin: 0;
             min-height: 100vh;
             background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
+                radial-gradient(circle at 85% 100%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
             color: var(--text);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* Statischer Ambient-Glow (Keine Performance-Fressende Animation) */
-        body::before, body::after {
-            content: "";
-            position: fixed;
-            pointer-events: none;
-            filter: blur(120px);
-            z-index: 0;
-            opacity: 0.12;
-        }
-
-        body::before {
-            width: 400px;
-            height: 400px;
-            top: -150px;
-            right: -50px;
-            background: var(--ubahn-u3);
-        }
-
-        body::after {
-            width: 300px;
-            height: 300px;
-            bottom: -100px;
-            left: -50px;
-            background: var(--bus);
+        body {
+            padding: 16px 12px 24px;
+            display: flex;
+            justify-content: center;
         }
 
         .app {
             width: 100%;
             max-width: 480px;
-            margin: 0 auto;
-            padding: 24px 16px 40px;
             position: relative;
             z-index: 1;
         }
 
+        /* --- TOPBAR --- */
         .topbar {
-            margin-bottom: 30px;
-            text-align: center;
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-top: 1px solid var(--border-highlight);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .topbar-row {
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
         #clock {
-            font-size: clamp(3.5rem, 14vw, 5rem);
+            font-size: clamp(2.8rem, 10vw, 3.8rem);
             font-weight: 800;
-            line-height: 0.85;
-            letter-spacing: -0.06em;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
             font-variant-numeric: tabular-nums;
             color: #ffffff;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
         }
 
         #dateLine {
-            display: inline-block;
-            margin-top: 14px;
-            padding: 6px 14px;
-            background: var(--bg-capsule);
-            border: 1px solid var(--border);
-            border-radius: 999px;
+            margin-top: 6px;
             color: var(--text-soft);
             font-size: 0.85rem;
             font-weight: 500;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
         }
 
-        .sync-capsule {
+        .sync-chip {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
+            gap: 10px;
+            padding: 10px 14px;
             border-radius: 999px;
-            background: var(--bg-capsule);
+            background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--border);
-            box-shadow: var(--shadow-hard);
-            margin-top: 10px;
+            flex-shrink: 0;
         }
 
-        .sync-dot-ambient {
-            width: 8px;
-            height: 8px;
+        .sync-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: var(--green);
             box-shadow: 0 0 8px var(--green);
         }
 
-        .sync-label-soft {
+        .sync-copy {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sync-label {
             color: var(--text-muted);
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.6rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
-            display: block;
-            margin-bottom: 2px;
+            letter-spacing: 0.12em;
         }
 
         #lastUpdate {
             color: var(--text);
             font-size: 0.8rem;
-            font-weight: 700;
+            font-weight: 600;
             font-variant-numeric: tabular-nums;
         }
 
+        /* --- DASHBOARD NEU: ZWEISPALTIGES GRID --- */
         .dashboard {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Genau 2 Spalten nebeneinander */
+            gap: 12px; /* Schmalere Abstände für Kompaktheit */
         }
 
-        /* FIX: Fester Hintergrund und statischer Rahmen (Kein Ruckeln!) */
+        /* U3 nimmt die volle Breite in Anspruch, weil sie am Ende steht */
+        .station-card.ubahn {
+            grid-column: span 2; 
+        }
+
         .station-card {
             position: relative;
             overflow: hidden;
-            padding: 20px;
+            padding: 14px;
             border-radius: var(--radius-lg);
-            background: var(--panel);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
             border: 1px solid var(--border);
-            border-left: 5px solid var(--accent); /* Festes, leuchtendes Band links */
-            box-shadow: var(--shadow-hard);
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 16px 12px;
-        }
-
-        .station-card.tram { var(--accent: var(--tram)); box-shadow: 0 4px 20px rgba(230, 20, 40, 0.08); }
-        .station-card.bus { var(--accent: var(--bus)); box-shadow: 0 4px 20px rgba(26, 115, 232, 0.08); }
-        .station-card.ubahn.u3 { var(--accent: var(--ubahn-u3)); box-shadow: 0 4px 20px rgba(255, 106, 0, 0.08); }
-        .station-card.missing { var(--accent: #333;); }
-
-        .card-main {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            min-width: 0;
-        }
-
-        .line-block {
-            flex: 0 0 auto;
+            border-left: 4px solid var(--accent); /* Knackiger Leuchtrand links */
+            box-shadow: var(--shadow-soft);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: 14px;
         }
 
-        .line-badge-ambient {
-            min-width: 74px;
-            height: 56px;
-            padding: 0 14px;
-            border-radius: var(--radius-md);
+        .station-card.tram { --accent: var(--tram); box-shadow: 0 4px 15px rgba(230, 20, 40, 0.05); }
+        .station-card.bus { --accent: var(--bus); box-shadow: 0 4px 15px rgba(26, 115, 232, 0.05); }
+        .station-card.ubahn.u3 { --accent: var(--ubahn-u3); box-shadow: 0 4px 15px rgba(255, 106, 0, 0.05); }
+        .station-card.missing { --accent: #4a5060; }
+
+        /* Kompakte obere Zeile im Widget */
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+        }
+
+        /* Kompakte Glas-Plakette */
+        .line-badge {
+            min-width: 52px;
+            height: 42px;
+            padding: 0 8px;
+            border-radius: var(--radius-sm);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 1.35rem;
             font-weight: 800;
-            letter-spacing: -0.05em;
+            letter-spacing: -0.04em;
             color: #ffffff;
-            background: #000;
-            position: relative;
+            background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--border);
-        }
-
-        .line-badge-ambient span {
             text-shadow: 0 0 8px var(--accent);
         }
 
-        .type-capsule {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
+        .type-icon {
             color: var(--text-muted);
+            display: flex;
+            align-items: center;
         }
 
-        .type-capsule svg {
+        .type-icon svg {
             width: 16px;
             height: 16px;
             stroke: currentColor;
         }
 
-        .station-tag {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-weight: 500;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 4px;
+        .info {
+            min-width: 0;
+            margin-top: 2px;
         }
 
         .direction {
             color: var(--text);
-            font-size: 1.35rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            line-height: 1.1;
+            line-height: 1.15;
             letter-spacing: -0.01em;
             word-break: break-word;
         }
 
-        .data-row {
-            margin-top: 10px;
+        /* Die fette Zeitanzeige im Widget */
+        .time-row {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: flex-start;
+            gap: 4px;
         }
 
-        .data-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            color: var(--text-soft);
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .data-pill::before {
-            content: "";
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent, #666);
-        }
-
-        .time-panel {
-            min-width: 90px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 2px;
-            text-align: right;
-        }
-
-        .time-value-mono {
-            font-family: 'Space Mono', monospace;
-            font-size: 3.5rem;
-            line-height: 0.8;
-            font-weight: 700;
-            letter-spacing: -0.1em;
+        .time-value {
+            font-size: 2.8rem;
+            line-height: 0.85;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            font-variant-numeric: tabular-nums;
             color: var(--text);
         }
 
-        .time-value-mono.soon {
+        .time-value.soon {
             color: var(--green);
         }
 
-        .time-unit-cap {
-            font-size: 0.8rem;
-            color: var(--text-soft);
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            font-weight: 700;
-        }
-
-        .next-options {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding-top: 6px;
-            margin-top: 2px;
-            border-top: 1px solid var(--border);
-        }
-
-        .next-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 12px;
-            border-radius: var(--radius-sm);
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
-            color: var(--text-soft);
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .next-pill strong {
-            font-family: 'Space Mono', monospace;
-            color: var(--text);
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .secondary-label {
+        .time-unit {
             font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-right: 4px;
+            color: var(--text-soft);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+        }
+
+        /* Die kompakteren Folgezeiten im Widget unten */
+        .secondary-times {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+            width: 100%;
+        }
+
+        .secondary-pill {
+            color: var(--text-soft);
+            font-size: 0.76rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .secondary-pill strong {
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
         }
 
         .loading-card, .error-msg {
-            padding: 40px 20px;
+            grid-column: span 2;
+            padding: 30px 20px;
             border-radius: var(--radius-lg);
             background: var(--panel);
             border: 1px solid var(--border);
-            box-shadow: var(--shadow-hard);
             text-align: center;
-            color: var(--text-soft);
             font-weight: 600;
         }
 
-        .error-msg { color: #ff6e6e; }
-
-        @media (max-width: 390px) {
-            body { padding: 16px 10px 24px; }
-            .topbar { margin-bottom: 20px; }
-            .topbar-row { flex-direction: column; align-items: center; gap: 14px; }
-            .sync-capsule { width: 100%; justify-content: center; }
-            .station-card { padding: 16px; gap: 14px 10px; }
-            .line-badge-ambient { min-width: 64px; height: 50px; font-size: 1.5rem; border-radius: 12px; }
-            .direction { font-size: 1.2rem; }
-            .time-value-mono { font-size: 2.8rem; }
-        }
+        .loading-card { color: var(--text-soft); }
+        .error-msg { color: #ff5e5e; }
     </style>
 </head>
 
@@ -383,18 +301,18 @@
                     <div id="dateLine">Lade Datum...</div>
                 </div>
 
-                <div class="sync-capsule">
-                    <div class="sync-dot-ambient"></div>
+                <div class="sync-chip">
+                    <div class="sync-dot"></div>
                     <div class="sync-copy">
-                        <span class="sync-label-soft">Transit Synced</span>
-                        <span id="lastUpdate">Lade Daten...</span>
+                        <span class="sync-label">Live Sync</span>
+                        <span id="lastUpdate">Lade...</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <section id="dashboard" class="dashboard">
-            <div class="loading-card">Initialisiere Datenfeed...</div>
+            <div class="loading-card">Lade Widget-Feed...</div>
         </section>
     </main>
 
@@ -412,11 +330,9 @@
         function baueApiUrls() {
             const rbls = [...new Set(meineStationen.map(station => station.rbl))];
             const params = rbls.map(id => `rbl=${encodeURIComponent(id)}`).join("&");
-            const wlUrl = `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`;
-
             return [
-                wlUrl,
-                "https://corsproxy.io/?" + encodeURIComponent(wlUrl)
+                `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`,
+                "https://corsproxy.io/?" + encodeURIComponent(`https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`)
             ];
         }
 
@@ -428,44 +344,25 @@
 
         function holeTypIcon(linie) {
             if (linie.startsWith("U")) {
-                return `
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="4" y="4" width="16" height="16" rx="5"></rect>
-                        <path d="M8 9v4a4 4 0 0 0 8 0V9"></path>
-                    </svg>
-                `;
+                return `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"></rect><path d="M8 9v4a4 4 0 0 0 8 0V9"></path></svg>`;
             }
-
             if (linie.endsWith("A") || linie.endsWith("B")) {
-                return `
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="4" y="6" width="16" height="12" rx="3"></rect>
-                        <path d="M7 18h2M15 18h2M4 12h16"></path>
-                    </svg>
-                `;
+                return `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6.5" width="16" height="10" rx="3"></rect><path d="M7 16.5v2M17 16.5v2M4 11h16"></path></svg>`;
             }
-
-            return `
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="5" y="5" width="14" height="12" rx="2.5"></rect>
-                    <path d="M8 17v3M16 17v3M6 10h12M10 5v2m4-2v2"></path>
-                </svg>
-            `;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="11" rx="2.5"></rect><path d="M8 16v2M16 16v2M7 19h10M8 9h8"></path></svg>`;
         }
 
         function formatGroßeZeit(min) {
             if (min === undefined || min === null || min === "—") return "—";
             const num = Number(min);
             if (Number.isNaN(num)) return String(min);
-            if (num <= 0) return "0";
-            return String(num);
+            return num <= 0 ? "0" : String(num);
         }
 
         function formatZeitEinheit(min) {
             if (min === undefined || min === null || min === "—") return "";
             const num = Number(min);
-            if (!Number.isNaN(num) && num <= 0) return "SOFORT";
-            return "MIN";
+            return !Number.isNaN(num) && num <= 0 ? "SOFORT" : "MIN";
         }
 
         function istBald(min) {
@@ -475,90 +372,60 @@
 
         function erstelleSecondaryPills(zweiteZeit, dritteZeit) {
             const pills = [];
-
             if (zweiteZeit !== undefined && zweiteZeit !== null) {
-                pills.push(`<div class="next-pill"><span class="secondary-label">Nächste</span> <strong>${zweiteZeit} min</strong></div>`);
+                pills.push(`<div class="secondary-pill"><span>Nächste:</span> <strong>${zweiteZeit} min</strong></div>`);
             }
-
             if (dritteZeit !== undefined && dritteZeit !== null) {
-                pills.push(`<div class="next-pill"><span class="secondary-label">Dann</span> <strong>${dritteZeit} min</strong></div>`);
+                pills.push(`<div class="secondary-pill"><span>Danach:</span> <strong>${dritteZeit} min</strong></div>`);
             }
-
-            if (pills.length === 0) {
-                pills.push(`<div class="next-pill"><span class="secondary-label">Keine weiteren Daten</span></div>`);
-            }
-
-            return pills.join("");
+            return pills.length === 0 ? `<div class="secondary-pill">Keine weiteren Daten</div>` : pills.join("");
         }
 
         function erstelleKachel(wunsch, zeit, zweiteZeit, dritteZeit, istFehlend = false, infoText = "") {
             const typKlasse = bestimmeKachelTyp(wunsch.linie);
-            const timeClass = istBald(zeit) && !istFehlend ? "time-value-mono soon" : "time-value-mono";
+            const timeClass = istBald(zeit) && !istFehlend ? "time-value soon" : "time-value";
 
             const kachel = document.createElement("div");
             kachel.className = `station-card ${typKlasse} ${istFehlend ? "missing" : ""}`;
 
             kachel.innerHTML = `
-                <div class="card-main">
-                    <div class="line-block">
-                        <div class="line-badge-ambient"><span>${wunsch.linie}</span></div>
-                        <div class="type-capsule">${holeTypIcon(wunsch.linie)}</div>
+                <div>
+                    <div class="card-top">
+                        <div class="line-badge"><span>${wunsch.linie}</span></div>
+                        <div class="type-icon">${holeTypIcon(wunsch.linie)}</div>
                     </div>
-
                     <div class="info">
-                        <div class="station-tag">${wunsch.name}</div>
                         <div class="direction">${wunsch.richtung}</div>
-                        <div class="data-row">
-                            <div class="data-pill">RBL ${wunsch.rbl}</div>
-                        </div>
                     </div>
                 </div>
 
-                <div class="time-panel">
-                    <div class="${timeClass}">${formatGroßeZeit(zeit)}</div>
-                    <div class="time-unit-cap">${istFehlend ? "" : formatZeitEinheit(zeit)}</div>
-                </div>
+                <div>
+                    <div class="time-row">
+                        <div class="${timeClass}">${formatGroßeZeit(zeit)}</div>
+                        <div class="time-unit">${istFehlend ? "" : formatZeitEinheit(zeit)}</div>
+                    </div>
 
-                <div class="next-options">
-                    ${istFehlend
-                    ? `<div class="next-pill"><span class="secondary-label">${infoText || "Fehlerhaft"}</span></div>`
-                    : erstelleSecondaryPills(zweiteZeit, dritteZeit)
-                }
+                    <div class="secondary-times">
+                        ${istFehlend ? `<div class="secondary-pill">${infoText}</div>` : erstelleSecondaryPills(zweiteZeit, dritteZeit)}
+                    </div>
                 </div>
             `;
-
             return kachel;
         }
 
         async function ladeApiDaten() {
             const apiUrls = baueApiUrls();
             let letzterFehler = null;
-
             for (const url of apiUrls) {
                 try {
                     const response = await fetch(url, { cache: "no-store" });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const json = await response.json();
-
-                    if (!json?.data?.monitors) {
-                        throw new Error("Ungültige API-Antwort");
-                    }
-
+                    if (!json?.data?.monitors) throw new Error("Ungültige API");
                     return json;
-                } catch (error) {
-                    letzterFehler = error;
-                }
+                } catch (error) { letzterFehler = error; }
             }
-
-            throw new Error("API-Verbindung fehlgeschlagen");
-        }
-
-        function findePassendeLinie(linien, wunsch) {
-            return linien.find(l => String(l.name) === String(wunsch.linie));
+            throw new Error(letzterFehler?.message || "Fehler");
         }
 
         async function holeAbfahrten() {
@@ -568,7 +435,6 @@
             try {
                 const json = await ladeApiDaten();
                 const monitors = json.data?.monitors || [];
-
                 dashboardContainer.innerHTML = "";
 
                 meineStationen.forEach(wunsch => {
@@ -576,31 +442,17 @@
                     let gesammelteLinien = [];
 
                     for (const m of monitors) {
-                        const apiRbl =
-                            m.locationStop?.properties?.attributes?.rbl ||
-                            m.locationStop?.properties?.name;
-
+                        const apiRbl = m.locationStop?.properties?.attributes?.rbl || m.locationStop?.properties?.name;
                         if (String(apiRbl) !== String(wunsch.rbl)) continue;
 
                         const linien = m.lines || [];
                         linien.forEach(l => gesammelteLinien.push(`${l.name} → ${l.towards}`));
-
-                        const match = findePassendeLinie(linien, wunsch);
-
-                        if (match) {
-                            gefundeneLinie = match;
-                            break;
-                        }
+                        const match = linien.find(l => String(l.name) === String(wunsch.linie));
+                        if (match) { gefundeneLinie = match; break; }
                     }
 
                     if (!gefundeneLinie) {
-                        const infoText = gesammelteLinien.length > 0
-                            ? gesammelteLinien.join(" | ")
-                            : `Offline`;
-
-                        dashboardContainer.appendChild(
-                            erstelleKachel(wunsch, "—", undefined, undefined, true, infoText)
-                        );
+                        dashboardContainer.appendChild(erstelleKachel(wunsch, "—", undefined, undefined, true, "Offline"));
                         return;
                     }
 
@@ -609,46 +461,24 @@
                     const zweiteAbfahrt = abfahrtenArray[1]?.departureTime?.countdown;
                     const dritteAbfahrt = abfahrtenArray[2]?.departureTime?.countdown;
 
-                    dashboardContainer.appendChild(
-                        erstelleKachel(wunsch, naechsteAbfahrt, zweiteAbfahrt, dritteAbfahrt, false)
-                    );
+                    dashboardContainer.appendChild(erstelleKachel(wunsch, naechsteAbfahrt, zweiteAbfahrt, dritteAbfahrt, false));
                 });
 
-                lastUpdate.textContent = new Date().toLocaleTimeString("de-AT", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit"
-                });
-
+                lastUpdate.textContent = new Date().toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
             } catch (fehler) {
-                dashboardContainer.innerHTML = `
-                    <div class="error-msg">
-                        <strong>DATA FEED OFFLINE</strong><br>
-                        Prüfe Verbindung.
-                    </div>
-                `;
-                lastUpdate.textContent = "Offline";
+                dashboardContainer.innerHTML = `<div class="error-msg"><strong>FEED OFFLINE</strong></div>`;
+                lastUpdate.textContent = "Fehler";
             }
         }
 
         function aktualisiereUhr() {
             const jetzt = new Date();
-
-            document.getElementById("clock").textContent = jetzt.toLocaleTimeString("de-AT", {
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-
-            document.getElementById("dateLine").textContent = jetzt.toLocaleDateString("de-AT", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long"
-            });
+            document.getElementById("clock").textContent = jetzt.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
+            document.getElementById("dateLine").textContent = jetzt.toLocaleDateString("de-AT", { weekday: "long", day: "2-digit", month: "long" });
         }
 
         aktualisiereUhr();
         setInterval(aktualisiereUhr, 1000);
-
         holeAbfahrten();
         setInterval(holeAbfahrten, 10000);
     </script>
