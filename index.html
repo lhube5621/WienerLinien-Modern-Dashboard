@@ -27,8 +27,11 @@
             /* Farben mit Glow-Effekt */
             --green: #00f098;
             --tram: #e61428;
+            --tram-gradient: linear-gradient(135deg, #f42c3e, #b80010);
             --bus: #1a73e8;
+            --bus-gradient: linear-gradient(135deg, #4b90ff, #0f52ba);
             --ubahn-u3: #ff6a00;
+            --ubahn-u3-gradient: linear-gradient(135deg, #ff8c33, #d65800);
             
             --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.4);
             --radius-xl: 28px;
@@ -140,14 +143,13 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* --- DASHBOARD NEU: ZWEISPALTIGES GRID --- */
+        /* --- DASHBOARD: ZWEISPALTIGES GRID --- */
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Genau 2 Spalten nebeneinander */
-            gap: 12px; /* Schmalere Abstände für Kompaktheit */
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
         }
 
-        /* U3 nimmt die volle Breite in Anspruch, weil sie am Ende steht */
         .station-card.ubahn {
             grid-column: span 2; 
         }
@@ -157,9 +159,9 @@
             overflow: hidden;
             padding: 14px;
             border-radius: var(--radius-lg);
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
             border: 1px solid var(--border);
-            border-left: 4px solid var(--accent); /* Knackiger Leuchtrand links */
+            border-left: 5px solid var(--accent);
             box-shadow: var(--shadow-soft);
             display: flex;
             flex-direction: column;
@@ -167,12 +169,11 @@
             gap: 14px;
         }
 
-        .station-card.tram { --accent: var(--tram); box-shadow: 0 4px 15px rgba(230, 20, 40, 0.05); }
-        .station-card.bus { --accent: var(--bus); box-shadow: 0 4px 15px rgba(26, 115, 232, 0.05); }
-        .station-card.ubahn.u3 { --accent: var(--ubahn-u3); box-shadow: 0 4px 15px rgba(255, 106, 0, 0.05); }
+        .station-card.tram { --accent: var(--tram); box-shadow: 0 4px 15px rgba(230, 20, 40, 0.1); }
+        .station-card.bus { --accent: var(--bus); box-shadow: 0 4px 15px rgba(26, 115, 232, 0.1); }
+        .station-card.ubahn.u3 { --accent: var(--ubahn-u3); box-shadow: 0 4px 15px rgba(255, 106, 0, 0.1); }
         .station-card.missing { --accent: #4a5060; }
 
-        /* Kompakte obere Zeile im Widget */
         .card-top {
             display: flex;
             align-items: center;
@@ -181,23 +182,24 @@
             width: 100%;
         }
 
-        /* Kompakte Glas-Plakette */
         .line-badge {
-            min-width: 52px;
-            height: 42px;
-            padding: 0 8px;
+            min-width: 56px;
+            height: 44px;
+            padding: 0 10px;
             border-radius: var(--radius-sm);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.35rem;
+            font-size: 1.4rem;
             font-weight: 800;
             letter-spacing: -0.04em;
             color: #ffffff;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border);
-            text-shadow: 0 0 8px var(--accent);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
+
+        .station-card.tram .line-badge { background: var(--tram-gradient); }
+        .station-card.bus .line-badge { background: var(--bus-gradient); }
+        .station-card.ubahn.u3 .line-badge { background: var(--ubahn-u3-gradient); }
 
         .type-icon {
             color: var(--text-muted);
@@ -225,7 +227,6 @@
             word-break: break-word;
         }
 
-        /* Die fette Zeitanzeige im Widget */
         .time-row {
             display: flex;
             align-items: baseline;
@@ -244,6 +245,7 @@
 
         .time-value.soon {
             color: var(--green);
+            text-shadow: 0 0 10px rgba(0, 240, 152, 0.3);
         }
 
         .time-unit {
@@ -254,7 +256,6 @@
             font-weight: 700;
         }
 
-        /* Die kompakteren Folgezeiten im Widget unten */
         .secondary-times {
             display: flex;
             flex-direction: column;
@@ -288,7 +289,7 @@
         }
 
         .loading-card { color: var(--text-soft); }
-        .error-msg { color: #ff5e5e; }
+        .error-msg { color: #ff5e5e; border-color: rgba(255, 94, 94, 0.2); }
     </style>
 </head>
 
@@ -312,7 +313,7 @@
         </section>
 
         <section id="dashboard" class="dashboard">
-            <div class="loading-card">Lade Widget-Feed...</div>
+            <div class="loading-card">Synchronisiere Live-Feed...</div>
         </section>
     </main>
 
@@ -327,17 +328,15 @@
             { rbl: "4933", linie: "U3", richtung: "Simmering", name: "Hütteldorfer Straße" }
         ];
 
-        // FIX: Kaskadierende Proxy-Liste eingebaut, falls einer blockiert oder offline ist
+        // ZURÜCK ZUR BASICS: Direkter Aufruf der Wiener Linien an oberster Stelle!
         function baueApiUrls() {
             const rbls = [...new Set(meineStationen.map(station => station.rbl))];
             const params = rbls.map(id => `rbl=${encodeURIComponent(id)}`).join("&");
             const wlUrl = `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`;
 
             return [
-                wlUrl, // 1. Direkter Aufruf
-                "https://corsproxy.io/?" + encodeURIComponent(wlUrl), // 2. Haupt-Proxy
-                "https://api.allorigins.win/raw?url=" + encodeURIComponent(wlUrl), // 3. Backup-Proxy (Cache-sicher)
-                "https://thingproxy.freeboard.io/fetch/" + wlUrl // 4. Letzter Notnagel
+                { url: wlUrl, type: "direct" }, // DIREKT! (So wie es vorhin so geil funktioniert hat)
+                { url: "https://corsproxy.io/?" + encodeURIComponent(wlUrl), type: "direct" } // Nur als absoluter Notnagel
             ];
         }
 
@@ -418,22 +417,33 @@
             return kachel;
         }
 
-        // FIX: Geht alle Proxys nacheinander durch, falls einer offline meldet
         async function ladeApiDaten() {
-            const apiUrls = baueApiUrls();
-            let letzterFehler = null;
-            for (const url of apiUrls) {
+            const proxies = baueApiUrls();
+            let letzterFehler = "Keine Verbindung möglich.";
+            
+            for (const proxy of proxies) {
                 try {
-                    const response = await fetch(url, { cache: "no-store" });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const json = await response.json();
-                    if (!json?.data?.monitors) throw new Error("Ungültige API");
-                    return json;
+                    const response = await fetch(proxy.url, { cache: "no-store" });
+                    if (!response.ok) continue; 
+                    
+                    const text = await response.text();
+                    
+                    // Schützt uns davor, dass Proxy-Fehler-Websites das Skript abstürzen lassen
+                    if (text.trim().startsWith('<')) {
+                        continue; 
+                    }
+
+                    const json = JSON.parse(text);
+
+                    if (json.data && json.data.monitors) {
+                        return json;
+                    }
+                    
                 } catch (error) { 
-                    letzterFehler = error; 
+                    letzterFehler = error.message; 
                 }
             }
-            throw new Error(letzterFehler?.message || "Fehler");
+            throw new Error(letzterFehler);
         }
 
         async function holeAbfahrten() {
@@ -483,10 +493,10 @@
                 dashboardContainer.innerHTML = `
                     <div class="error-msg">
                         <strong>Keine Verbindung zu den Echtzeitdaten</strong><br>
-                        <span style="font-size:0.8rem; color:#b0b8c9;">${fehler.message}</span>
+                        <span style="font-size:0.8rem; color:#b0b8c9;">Bitte prüfe deine Internetverbindung.</span>
                     </div>
                 `;
-                lastUpdate.textContent = "Fehler";
+                lastUpdate.textContent = "Offline";
             }
         }
 
