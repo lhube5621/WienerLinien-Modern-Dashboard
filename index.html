@@ -3,8 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Öffi Monitor Wien Kompakt-Grid</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0d1117">
+    <title>Öffi Monitor Wien</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +17,7 @@
             --bg: #0d1117;
             --bg-capsule: #07090e;
             --panel: rgba(255, 255, 255, 0.04);
+            --panel-strong: rgba(255, 255, 255, 0.07);
             --border: rgba(255, 255, 255, 0.08);
             --border-highlight: rgba(255, 255, 255, 0.15);
 
@@ -26,7 +28,6 @@
             --green: #00f098;
             --tram: #e61428;
             --bus: #1a73e8;
-            --ubahn-u3: #ff6a00;
 
             --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.4);
             --radius-xl: 28px;
@@ -39,6 +40,7 @@
             --bg: #eef1f6;
             --bg-capsule: #ffffff;
             --panel: rgba(255, 255, 255, 0.78);
+            --panel-strong: rgba(255, 255, 255, 0.9);
             --border: rgba(16, 24, 40, 0.10);
             --border-highlight: rgba(255, 255, 255, 0.92);
 
@@ -51,22 +53,6 @@
             --shadow-soft: 0 12px 30px rgba(16, 24, 40, 0.10);
         }
 
-        body.night {
-            --bg: #0d1117;
-            --bg-capsule: #07090e;
-            --panel: rgba(255, 255, 255, 0.04);
-            --border: rgba(255, 255, 255, 0.08);
-            --border-highlight: rgba(255, 255, 255, 0.15);
-
-            --text: #ffffff;
-            --text-soft: #b0b8c9;
-            --text-muted: #6e7688;
-
-            --green: #00f098;
-
-            --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.4);
-        }
-
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -77,12 +63,15 @@
             margin: 0;
             min-height: 100vh;
             background-color: var(--bg);
-            background-image:
-                radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
-                radial-gradient(circle at 85% 100%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
             color: var(--text);
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow-x: hidden;
+        }
+
+        body {
+            background-image:
+                radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
+                radial-gradient(circle at 85% 100%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
         }
 
         body.day {
@@ -92,14 +81,8 @@
                 linear-gradient(180deg, #f7f8fb 0%, #e9edf4 100%);
         }
 
-        body.night {
-            background-image:
-                radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
-                radial-gradient(circle at 85% 100%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
-        }
-
         body {
-            padding: 16px 12px 24px;
+            padding: 16px 12px calc(28px + env(safe-area-inset-bottom));
             display: flex;
             justify-content: center;
         }
@@ -111,14 +94,17 @@
             z-index: 1;
         }
 
+        /* ---------- Topbar ---------- */
         .topbar {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             padding: 16px 20px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-top: 1px solid var(--border-highlight);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
         .topbar-row {
@@ -129,7 +115,7 @@
         }
 
         #clock {
-            font-size: clamp(2.8rem, 10vw, 3.8rem);
+            font-size: clamp(2.6rem, 9vw, 3.6rem);
             font-weight: 800;
             line-height: 0.9;
             letter-spacing: -0.04em;
@@ -165,6 +151,12 @@
             border-radius: 50%;
             background: var(--green);
             box-shadow: 0 0 8px var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
         }
 
         .sync-copy {
@@ -187,14 +179,96 @@
             font-variant-numeric: tabular-nums;
         }
 
+        /* ---------- Tabs ---------- */
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            padding: 4px;
+            margin-bottom: 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .tab {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            padding: 11px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: color 0.2s ease, background 0.25s ease;
+        }
+
+        .tab svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+
+        .tab.active {
+            color: var(--text);
+            background: var(--panel-strong);
+            border: 1px solid var(--border-highlight);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+
+        body.day .tab.active {
+            box-shadow: 0 4px 14px rgba(16, 24, 40, 0.12);
+        }
+
+        .view { display: none; animation: fade 0.35s ease; }
+        .view.active { display: block; }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---------- Section headers ---------- */
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 4px 10px;
+            color: var(--text-soft);
+        }
+
+        .section-head svg { width: 15px; height: 15px; stroke: currentColor; fill: none; flex-shrink: 0; }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text);
+        }
+
+        .section-head .meta {
+            margin-left: auto;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .station-group + .station-group { margin-top: 18px; }
+
+        /* ---------- Departures grid ---------- */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-        }
-
-        .station-card.ubahn {
-            grid-column: span 2;
         }
 
         .station-card {
@@ -202,9 +276,9 @@
             overflow: hidden;
             padding: 14px;
             border-radius: var(--radius-lg);
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
             border: 1px solid var(--border);
-            border-left: 4px solid var(--accent);
+            border-left: 4px solid var(--accent, #4a5060);
             box-shadow: var(--shadow-soft);
             display: flex;
             flex-direction: column;
@@ -216,24 +290,9 @@
             background: linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.66) 100%);
         }
 
-        .station-card.tram {
-            --accent: var(--tram);
-            box-shadow: 0 4px 15px rgba(230, 20, 40, 0.05);
-        }
-
-        .station-card.bus {
-            --accent: var(--bus);
-            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.05);
-        }
-
-        .station-card.ubahn.u3 {
-            --accent: var(--ubahn-u3);
-            box-shadow: 0 4px 15px rgba(255, 106, 0, 0.05);
-        }
-
-        .station-card.missing {
-            --accent: #4a5060;
-        }
+        .station-card.tram { --accent: var(--tram); }
+        .station-card.bus { --accent: var(--bus); }
+        .station-card.missing { --accent: #4a5060; opacity: 0.85; }
 
         .card-top {
             display: flex;
@@ -244,60 +303,41 @@
         }
 
         .line-badge {
-            min-width: 52px;
-            height: 42px;
-            padding: 0 8px;
+            min-width: 50px;
+            height: 40px;
+            padding: 0 10px;
             border-radius: var(--radius-sm);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: 800;
             letter-spacing: -0.04em;
-            color: var(--text);
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border);
+            color: #fff;
         }
 
-        body.day .line-badge {
-            background: rgba(255, 255, 255, 0.62);
-        }
+        .line-badge.tram { background: var(--tram); }
+        .line-badge.bus { background: var(--bus); }
+        .line-badge.missing { background: #4a5060; }
 
-        .type-icon {
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-        }
+        .type-icon { color: var(--text-muted); display: flex; }
+        .type-icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
 
-        .type-icon svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-        }
-
-        .info {
-            min-width: 0;
-            margin-top: 2px;
-        }
+        .info { min-width: 0; margin-top: 10px; }
 
         .direction {
             color: var(--text);
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
             line-height: 1.15;
             letter-spacing: -0.01em;
             word-break: break-word;
         }
 
-        .time-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: flex-start;
-            gap: 4px;
-        }
+        .time-row { display: flex; align-items: baseline; gap: 5px; }
 
         .time-value {
-            font-size: 2.8rem;
+            font-size: 2.7rem;
             line-height: 0.85;
             font-weight: 800;
             letter-spacing: -0.05em;
@@ -305,12 +345,10 @@
             color: var(--text);
         }
 
-        .time-value.soon {
-            color: var(--green);
-        }
+        .time-value.soon { color: var(--green); }
 
         .time-unit {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-soft);
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -318,9 +356,6 @@
         }
 
         .secondary-times {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
             border-top: 1px solid var(--border);
             padding-top: 8px;
             width: 100%;
@@ -334,29 +369,195 @@
             justify-content: space-between;
         }
 
-        .secondary-pill strong {
+        .secondary-pill + .secondary-pill { margin-top: 3px; }
+        .secondary-pill strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
+        /* ---------- Routes ---------- */
+        .dest-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-top: 1px solid var(--border-highlight);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-soft);
+            padding: 16px 16px 8px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .dest-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .dest-icon {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, var(--green), color-mix(in srgb, var(--green) 60%, #000));
+            color: #04130d;
+        }
+
+        .dest-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+
+        .dest-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+        .dest-sub { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+
+        .dest-map {
+            margin-left: auto;
+            flex-shrink: 0;
+            width: 38px; height: 38px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.22);
+            border: 1px solid var(--border);
+            color: var(--text-soft);
+            text-decoration: none;
+        }
+
+        body.day .dest-map { background: rgba(255,255,255,0.6); }
+        .dest-map svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+
+        .route {
+            border-top: 1px solid var(--border);
+            padding: 13px 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .route-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .leave {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .leave-min {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
             color: var(--text);
+        }
+
+        .leave-min.soon { color: var(--green); }
+        .leave-min small { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.06em; }
+
+        .leave-clock {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 4px;
             font-variant-numeric: tabular-nums;
         }
 
+        .route-meta {
+            margin-left: auto;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .route-dur { font-size: 0.95rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+        .route-arr { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        .fastest-tag {
+            align-self: flex-start;
+            font-size: 0.58rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #04130d;
+            background: var(--green);
+            padding: 3px 7px;
+            border-radius: 999px;
+        }
+
+        .legs {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 2px;
+        }
+
+        .leg {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            line-height: 1;
+            padding: 5px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+            letter-spacing: -0.01em;
+        }
+
+        .leg svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+
+        .leg.walk {
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 5px 4px;
+        }
+
+        .leg-arrow { color: var(--text-muted); display: inline-flex; padding: 0 1px; }
+        .leg-arrow svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+
+        /* ---------- States ---------- */
         .loading-card,
         .error-msg {
             grid-column: span 2;
-            padding: 30px 20px;
+            padding: 28px 20px;
             border-radius: var(--radius-lg);
             background: var(--panel);
             border: 1px solid var(--border);
             text-align: center;
             font-weight: 600;
-        }
-
-        .loading-card {
             color: var(--text-soft);
         }
 
-        .error-msg {
-            color: #ff5e5e;
+        .error-msg { color: #ff6b6b; }
+
+        .route-state {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 10px 2px 16px;
+            border-top: 1px solid var(--border);
         }
+
+        .skeleton {
+            position: relative;
+            overflow: hidden;
+            background: var(--panel-strong);
+            border-radius: 8px;
+        }
+
+        .skeleton::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            animation: shimmer 1.3s infinite;
+        }
+
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
 </head>
 
@@ -366,199 +567,349 @@
             <div class="topbar-row">
                 <div class="clock-wrap">
                     <div id="clock">--:--</div>
-                    <div id="dateLine">Lade Datum...</div>
+                    <div id="dateLine">Lade Datum…</div>
                 </div>
-
                 <div class="sync-chip">
                     <div class="sync-dot"></div>
                     <div class="sync-copy">
                         <span class="sync-label">Live Sync</span>
-                        <span id="lastUpdate">Lade...</span>
+                        <span id="lastUpdate">Lade…</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="dashboard" class="dashboard">
-            <div class="loading-card">Lade Widget-Feed...</div>
+        <nav class="tabs">
+            <button class="tab active" data-view="abfahrten">
+                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="15" rx="3"></rect><path d="M5 11h14M8 18l-2 3M16 18l2 3"></path><circle cx="8.5" cy="14.5" r="0.6" fill="currentColor"></circle><circle cx="15.5" cy="14.5" r="0.6" fill="currentColor"></circle></svg>
+                Abfahrten
+            </button>
+            <button class="tab" data-view="routen">
+                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19a3 3 0 0 0 0-6h12a3 3 0 0 0 0-6"></path><circle cx="6" cy="6" r="2.2"></circle><circle cx="18" cy="19" r="2.2"></circle></svg>
+                Routen
+            </button>
+        </nav>
+
+        <!-- ABFAHRTEN -->
+        <section id="view-abfahrten" class="view active">
+            <div id="departures">
+                <div class="dashboard"><div class="loading-card">Lade Echtzeit-Abfahrten…</div></div>
+            </div>
+        </section>
+
+        <!-- ROUTEN -->
+        <section id="view-routen" class="view">
+            <div id="routes"></div>
         </section>
     </main>
 
     <script>
-        const meineStationen = [
-            { rbl: "571", linie: "10", richtung: "Unter St. Veit", name: "Linzer Straße" },
-            { rbl: "578", linie: "10", richtung: "Dornbach", name: "Linzer Straße" },
-            { rbl: "571", linie: "52", richtung: "Westbahnhof", name: "Linzer Straße" },
-            { rbl: "578", linie: "52", richtung: "Baumgarten", name: "Linzer Straße" },
-            { rbl: "902", linie: "10A", richtung: "Niederhofstraße", name: "Linzer Straße" },
-            { rbl: "879", linie: "10A", richtung: "Heiligenstadt", name: "Linzer Straße" },
-            { rbl: "4933", linie: "U3", richtung: "Simmering", name: "Hütteldorfer Straße" }
+        /* ============================================================
+           KONFIGURATION
+        ============================================================ */
+        const HOME = { lat: 48.19319, lon: 16.31121 }; // Linzer Straße 71
+
+        // Reihenfolge der Abfahrts-Kacheln, gruppiert nach Haltestelle
+        const STATIONEN = [
+            { stop: "Reinlgasse",     rbl: "570",  linie: "10",  richtung: "Unter St. Veit",      typ: "tram" },
+            { stop: "Reinlgasse",     rbl: "579",  linie: "10",  richtung: "Dornbach",            typ: "tram" },
+            { stop: "Reinlgasse",     rbl: "579",  linie: "52",  richtung: "Baumgarten",          typ: "tram" },
+            { stop: "Reinlgasse",     rbl: "1558", linie: "52",  richtung: "Westbahnhof",         typ: "tram" },
+            { stop: "Linzer Straße",  rbl: "902",  linie: "10A", richtung: "Niederhofstraße U",   typ: "bus"  },
+            { stop: "Linzer Straße",  rbl: "879",  linie: "10A", richtung: "Heiligenstadt S U",   typ: "bus"  }
         ];
 
-        function baueApiUrls() {
-            const rbls = [...new Set(meineStationen.map(station => station.rbl))];
-            const params = rbls.map(id => `rbl=${encodeURIComponent(id)}`).join("&");
-            return [
-                `https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`,
-                "https://corsproxy.io/?" + encodeURIComponent(`https://www.wienerlinien.at/ogd_realtime/monitor?${params}&_=${Date.now()}`)
-            ];
+        const ZIELE = [
+            { id: "lemeridien", name: "Le Méridien Vienna", sub: "Opernring 13A · 1010", lat: 48.2027, lon: 16.3666, icon: "hotel" },
+            { id: "johnreed",   name: "John Reed Schwedenplatz", sub: "Taborstraße 1–3 · 1020", lat: 48.2130, lon: 16.3791, icon: "gym" }
+        ];
+
+        const WL_BASE = "https://www.wienerlinien.at/ogd_realtime/monitor";
+        const MOTIS_BASE = "https://api.transitous.org/api/v1/plan";
+
+        /* ============================================================
+           ICONS
+        ============================================================ */
+        const ICON = {
+            tram: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="13" rx="3"></rect><path d="M5 11h14M8 17l-2 3M16 17l2 3M10 4l-1-1M14 4l1-1"></path></svg>`,
+            bus: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="12" rx="3"></rect><path d="M4 12h16M7 17v2M17 17v2"></path></svg>`,
+            subway: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="12" rx="3"></rect><path d="M5 11h14M8 16l-2 3M16 16l2 3"></path></svg>`,
+            train: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="2"></rect><path d="M6 11h12M9 17l-2 3M15 17l2 3"></path></svg>`,
+            walk: `<svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4.5" r="1.6"></circle><path d="M11 21l1.5-5L10 13l1-5 3 2 2.5 1M9 21l2-5"></path></svg>`,
+            arrow: `<svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l7 7-7 7"></path></svg>`,
+            pin: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.4"></circle></svg>`,
+            map: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg>`,
+            hotel: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V5M3 9h11a4 4 0 0 1 4 4v7M3 20h18M7 9V7"></path><circle cx="7" cy="7" r="0.4" fill="currentColor"></circle></svg>`,
+            gym: `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"></path></svg>`
+        };
+
+        /* ============================================================
+           ABFAHRTEN (Wiener Linien Echtzeit)
+        ============================================================ */
+        function wlUrls() {
+            const rbls = [...new Set(STATIONEN.map(s => s.rbl))];
+            const params = rbls.map(id => `rbl=${encodeURIComponent(id)}`).join("&") + `&_=${Date.now()}`;
+            const url = `${WL_BASE}?${params}`;
+            return [url, "https://corsproxy.io/?" + encodeURIComponent(url)];
         }
 
-        function bestimmeKachelTyp(linie) {
-            if (linie.startsWith("U")) return "ubahn " + linie.toLowerCase();
-            if (linie.endsWith("A") || linie.endsWith("B")) return "bus";
-            return "tram";
-        }
-
-        function holeTypIcon(linie) {
-            if (linie.startsWith("U")) {
-                return `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"></rect><path d="M8 9v4a4 4 0 0 0 8 0V9"></path></svg>`;
-            }
-            if (linie.endsWith("A") || linie.endsWith("B")) {
-                return `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6.5" width="16" height="10" rx="3"></rect><path d="M7 16.5v2M17 16.5v2M4 11h16"></path></svg>`;
-            }
-            return `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="11" rx="2.5"></rect><path d="M8 16v2M16 16v2M7 19h10M8 9h8"></path></svg>`;
-        }
-
-        function formatGroßeZeit(min) {
-            if (min === undefined || min === null || min === "—") return "—";
-            const num = Number(min);
-            if (Number.isNaN(num)) return String(min);
-            return num <= 0 ? "0" : String(num);
-        }
-
-        function formatZeitEinheit(min) {
-            if (min === undefined || min === null || min === "—") return "";
-            const num = Number(min);
-            return !Number.isNaN(num) && num <= 0 ? "SOFORT" : "MIN";
-        }
-
-        function istBald(min) {
-            const num = Number(min);
-            return !Number.isNaN(num) && num <= 3;
-        }
-
-        function erstelleSecondaryPills(zweiteZeit, dritteZeit) {
-            const pills = [];
-            if (zweiteZeit !== undefined && zweiteZeit !== null) {
-                pills.push(`<div class="secondary-pill"><span>Nächste:</span> <strong>${zweiteZeit} min</strong></div>`);
-            }
-            if (dritteZeit !== undefined && dritteZeit !== null) {
-                pills.push(`<div class="secondary-pill"><span>Danach:</span> <strong>${dritteZeit} min</strong></div>`);
-            }
-            return pills.length === 0 ? `<div class="secondary-pill">Keine weiteren Daten</div>` : pills.join("");
-        }
-
-        function erstelleKachel(wunsch, zeit, zweiteZeit, dritteZeit, istFehlend = false, infoText = "") {
-            const typKlasse = bestimmeKachelTyp(wunsch.linie);
-            const timeClass = istBald(zeit) && !istFehlend ? "time-value soon" : "time-value";
-
-            const kachel = document.createElement("div");
-            kachel.className = `station-card ${typKlasse} ${istFehlend ? "missing" : ""}`;
-
-            kachel.innerHTML = `
-                <div>
-                    <div class="card-top">
-                        <div class="line-badge"><span>${wunsch.linie}</span></div>
-                        <div class="type-icon">${holeTypIcon(wunsch.linie)}</div>
-                    </div>
-                    <div class="info">
-                        <div class="direction">${wunsch.richtung}</div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="time-row">
-                        <div class="${timeClass}">${formatGroßeZeit(zeit)}</div>
-                        <div class="time-unit">${istFehlend ? "" : formatZeitEinheit(zeit)}</div>
-                    </div>
-
-                    <div class="secondary-times">
-                        ${istFehlend ? `<div class="secondary-pill">${infoText}</div>` : erstelleSecondaryPills(zweiteZeit, dritteZeit)}
-                    </div>
-                </div>
-            `;
-            return kachel;
-        }
-
-        async function ladeApiDaten() {
-            const apiUrls = baueApiUrls();
-            let letzterFehler = null;
-            for (const url of apiUrls) {
+        async function fetchWL() {
+            let last;
+            for (const url of wlUrls()) {
                 try {
-                    const response = await fetch(url, { cache: "no-store" });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const json = await response.json();
-                    if (!json?.data?.monitors) throw new Error("Ungültige API");
-                    return json;
-                } catch (error) { letzterFehler = error; }
+                    const r = await fetch(url, { cache: "no-store" });
+                    if (!r.ok) throw new Error("HTTP " + r.status);
+                    const j = await r.json();
+                    if (!j?.data?.monitors) throw new Error("Ungültige API");
+                    return j;
+                } catch (e) { last = e; }
             }
-            throw new Error(letzterFehler?.message || "Fehler");
+            throw last || new Error("Fehler");
         }
 
-        async function holeAbfahrten() {
-            const dashboardContainer = document.getElementById("dashboard");
+        function countdownsFor(monitors, rbl, linie) {
+            const out = [];
+            for (const m of monitors) {
+                const apiRbl = m.locationStop?.properties?.attributes?.rbl;
+                if (String(apiRbl) !== String(rbl)) continue;
+                for (const l of (m.lines || [])) {
+                    if (String(l.name) !== String(linie)) continue;
+                    for (const d of (l.departures?.departure || [])) {
+                        const c = d.departureTime?.countdown;
+                        if (c !== undefined && c !== null) out.push(Number(c));
+                    }
+                }
+            }
+            return out.sort((a, b) => a - b);
+        }
+
+        function departureCard(s, times) {
+            const fehlt = !times || times.length === 0;
+            const first = fehlt ? "—" : (times[0] <= 0 ? "0" : String(times[0]));
+            const unit = fehlt ? "" : (times[0] <= 0 ? "SOFORT" : "MIN");
+            const soon = !fehlt && times[0] <= 3 ? " soon" : "";
+
+            let sec;
+            if (fehlt) {
+                sec = `<div class="secondary-pill">Keine Echtzeitdaten</div>`;
+            } else {
+                const pills = [];
+                if (times[1] !== undefined) pills.push(`<div class="secondary-pill"><span>Nächste</span><strong>${times[1]} min</strong></div>`);
+                if (times[2] !== undefined) pills.push(`<div class="secondary-pill"><span>Danach</span><strong>${times[2]} min</strong></div>`);
+                sec = pills.length ? pills.join("") : `<div class="secondary-pill">Keine weiteren</div>`;
+            }
+
+            return `
+                <div class="station-card ${s.typ} ${fehlt ? "missing" : ""}">
+                    <div>
+                        <div class="card-top">
+                            <div class="line-badge ${fehlt ? "missing" : s.typ}">${s.linie}</div>
+                            <div class="type-icon">${s.typ === "bus" ? ICON.bus : ICON.tram}</div>
+                        </div>
+                        <div class="info"><div class="direction">${s.richtung}</div></div>
+                    </div>
+                    <div>
+                        <div class="time-row">
+                            <div class="time-value${soon}">${first}</div>
+                            <div class="time-unit">${unit}</div>
+                        </div>
+                        <div class="secondary-times">${sec}</div>
+                    </div>
+                </div>`;
+        }
+
+        async function ladeAbfahrten() {
+            const wrap = document.getElementById("departures");
             const lastUpdate = document.getElementById("lastUpdate");
-
             try {
-                const json = await ladeApiDaten();
+                const json = await fetchWL();
                 const monitors = json.data?.monitors || [];
-                dashboardContainer.innerHTML = "";
 
-                meineStationen.forEach(wunsch => {
-                    let gefundeneLinie = null;
-                    let gesammelteLinien = [];
-
-                    for (const m of monitors) {
-                        const apiRbl = m.locationStop?.properties?.attributes?.rbl || m.locationStop?.properties?.name;
-                        if (String(apiRbl) !== String(wunsch.rbl)) continue;
-
-                        const linien = m.lines || [];
-                        linien.forEach(l => gesammelteLinien.push(`${l.name} → ${l.towards}`));
-                        const match = linien.find(l => String(l.name) === String(wunsch.linie));
-                        if (match) { gefundeneLinie = match; break; }
-                    }
-
-                    if (!gefundeneLinie) {
-                        dashboardContainer.appendChild(erstelleKachel(wunsch, "—", undefined, undefined, true, "Offline"));
-                        return;
-                    }
-
-                    const abfahrtenArray = gefundeneLinie.departures?.departure || [];
-                    const naechsteAbfahrt = abfahrtenArray[0]?.departureTime?.countdown ?? "—";
-                    const zweiteAbfahrt = abfahrtenArray[1]?.departureTime?.countdown;
-                    const dritteAbfahrt = abfahrtenArray[2]?.departureTime?.countdown;
-
-                    dashboardContainer.appendChild(erstelleKachel(wunsch, naechsteAbfahrt, zweiteAbfahrt, dritteAbfahrt, false));
-                });
-
+                const groups = [...new Set(STATIONEN.map(s => s.stop))];
+                let html = "";
+                for (const g of groups) {
+                    const cards = STATIONEN.filter(s => s.stop === g)
+                        .map(s => departureCard(s, countdownsFor(monitors, s.rbl, s.linie))).join("");
+                    html += `
+                        <div class="station-group">
+                            <div class="section-head">${ICON.pin}<h2>${g}</h2><span class="meta">Echtzeit</span></div>
+                            <div class="dashboard">${cards}</div>
+                        </div>`;
+                }
+                wrap.innerHTML = html;
                 lastUpdate.textContent = new Date().toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            } catch (fehler) {
-                dashboardContainer.innerHTML = `<div class="error-msg"><strong>FEED OFFLINE</strong></div>`;
+            } catch (e) {
+                wrap.innerHTML = `<div class="dashboard"><div class="error-msg"><strong>Feed offline</strong><br>${e.message}</div></div>`;
                 lastUpdate.textContent = "Fehler";
             }
         }
 
-        function aktualisiereUhr() {
-            const jetzt = new Date();
-            const stunde = jetzt.getHours();
+        /* ============================================================
+           ROUTEN (MOTIS / transitous – Live-Verbindungssuche)
+        ============================================================ */
+        const ULINIEN = { U1: "#e20613", U2: "#a862a4", U3: "#ef7c00", U4: "#009b3a", U6: "#9a6a30" };
 
-            if (stunde >= 7 && stunde < 19) {
-                document.body.classList.add("day");
-                document.body.classList.remove("night");
-            } else {
-                document.body.classList.add("night");
-                document.body.classList.remove("day");
-            }
-
-            document.getElementById("clock").textContent = jetzt.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
-            document.getElementById("dateLine").textContent = jetzt.toLocaleDateString("de-AT", { weekday: "long", day: "2-digit", month: "long" });
+        function legStyle(mode, name) {
+            const n = (name || "").toUpperCase().trim();
+            if (ULINIEN[n]) return { bg: ULINIEN[n], fg: "#fff", icon: ICON.subway, label: n };
+            if (mode === "TRAM") return { bg: "#e61428", fg: "#fff", icon: ICON.tram, label: n };
+            if (mode === "BUS") return { bg: "#1a73e8", fg: "#fff", icon: ICON.bus, label: n };
+            if (n.startsWith("S")) return { bg: "#0046ad", fg: "#fff", icon: ICON.train, label: n }; // S-Bahn
+            if (mode === "SUBWAY" || mode === "METRO") return { bg: "#0046ad", fg: "#fff", icon: ICON.train, label: n || "S" };
+            if (mode === "RAIL" || mode === "REGIONAL_RAIL" || mode === "HIGHSPEED_RAIL") return { bg: "#9b1c4b", fg: "#fff", icon: ICON.train, label: n || "Zug" };
+            return { bg: "#5b6472", fg: "#fff", icon: ICON.train, label: n || mode };
         }
 
-        aktualisiereUhr();
-        setInterval(aktualisiereUhr, 30000);
-        holeAbfahrten();
-        setInterval(holeAbfahrten, 30000);
+        function minBetween(a, b) { return Math.max(1, Math.round((new Date(b) - new Date(a)) / 60000)); }
+        function fmtClock(iso) { return new Date(iso).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Vienna" }); }
+
+        function legsHtml(legs) {
+            const parts = [];
+            legs.forEach(l => {
+                if (l.mode === "WALK") {
+                    const m = minBetween(l.startTime, l.endTime);
+                    if (m < 1) return;
+                    parts.push(`<span class="leg walk">${ICON.walk}${m}′</span>`);
+                } else {
+                    const st = legStyle(l.mode, l.routeShortName);
+                    parts.push(`<span class="leg" style="background:${st.bg};color:${st.fg}">${st.icon}${st.label}</span>`);
+                }
+            });
+            return parts.join(`<span class="leg-arrow">${ICON.arrow}</span>`);
+        }
+
+        function routeRow(it, isFastest) {
+            const startMs = new Date(it.startTime).getTime();
+            const dur = Math.round(it.duration / 60);
+            const tr = it.transfers || 0;
+            const trTxt = tr === 0 ? "direkt" : tr === 1 ? "1 Umstieg" : tr + " Umstiege";
+
+            return `
+                <div class="route" data-start="${startMs}">
+                    <div class="route-top">
+                        <div class="leave">
+                            <div class="leave-min" data-leave><small>los in</small> —</div>
+                            <div class="leave-clock">ab ${fmtClock(it.startTime)} Uhr</div>
+                        </div>
+                        <div class="route-meta">
+                            ${isFastest ? `<span class="fastest-tag">Schnellste</span>` : ``}
+                            <span class="route-dur">${dur} min</span>
+                            <span class="route-arr">an ${fmtClock(it.endTime)} · ${trTxt}</span>
+                        </div>
+                    </div>
+                    <div class="legs">${legsHtml(it.legs || [])}</div>
+                </div>`;
+        }
+
+        function mapsUrl(z) {
+            return `https://www.google.com/maps/dir/?api=1&origin=${HOME.lat},${HOME.lon}&destination=${z.lat},${z.lon}&travelmode=transit`;
+        }
+
+        function destShell(z) {
+            return `
+                <div class="dest-card" id="dest-${z.id}">
+                    <div class="dest-head">
+                        <div class="dest-icon">${ICON[z.icon] || ICON.pin}</div>
+                        <div>
+                            <div class="dest-title">${z.name}</div>
+                            <div class="dest-sub">${z.sub}</div>
+                        </div>
+                        <a class="dest-map" href="${mapsUrl(z)}" target="_blank" rel="noopener" aria-label="In Karten öffnen">${ICON.map}</a>
+                    </div>
+                    <div class="route-body"><div class="route-state">Suche beste Verbindung…</div></div>
+                </div>`;
+        }
+
+        async function fetchRoute(z) {
+            const params = new URLSearchParams({
+                fromPlace: `${HOME.lat},${HOME.lon}`,
+                toPlace: `${z.lat},${z.lon}`,
+                time: new Date().toISOString(),
+                arriveBy: "false",
+                numItineraries: "5"
+            });
+            const r = await fetch(`${MOTIS_BASE}?${params.toString()}`, { cache: "no-store" });
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            const j = await r.json();
+            return j.itineraries || [];
+        }
+
+        async function ladeRoute(z) {
+            const body = document.querySelector(`#dest-${z.id} .route-body`);
+            try {
+                let its = await fetchRoute(z);
+                // nur Verbindungen, die noch nicht abgefahren sind, sortiert nach Ankunft
+                const now = Date.now() - 60000;
+                its = its.filter(it => new Date(it.startTime).getTime() >= now)
+                         .sort((a, b) => new Date(a.endTime) - new Date(b.endTime))
+                         .slice(0, 3);
+                if (!its.length) { body.innerHTML = `<div class="route-state">Aktuell keine Verbindung gefunden.</div>`; return; }
+                body.innerHTML = its.map((it, i) => routeRow(it, i === 0)).join("");
+                tickLeaveTimes();
+            } catch (e) {
+                body.innerHTML = `<div class="route-state">Routing offline – <a href="${mapsUrl(z)}" target="_blank" rel="noopener" style="color:var(--green)">in Karten öffnen</a></div>`;
+            }
+        }
+
+        function ladeRouten() {
+            const wrap = document.getElementById("routes");
+            if (!wrap.dataset.built) { wrap.innerHTML = ZIELE.map(destShell).join(""); wrap.dataset.built = "1"; }
+            ZIELE.forEach(ladeRoute);
+        }
+
+        // "los in X min" jede Sekunde lokal aktualisieren (ohne neuen Fetch)
+        function tickLeaveTimes() {
+            document.querySelectorAll(".route").forEach(row => {
+                const el = row.querySelector("[data-leave]");
+                if (!el) return;
+                const diff = Math.round((Number(row.dataset.start) - Date.now()) / 60000);
+                if (diff <= 0) { el.innerHTML = `<small>jetzt</small> los`; el.classList.add("soon"); }
+                else {
+                    el.innerHTML = `<small>los in</small> ${diff}`;
+                    el.classList.toggle("soon", diff <= 4);
+                }
+            });
+        }
+
+        /* ============================================================
+           UHR / THEME / TABS
+        ============================================================ */
+        function tickUhr() {
+            const now = new Date();
+            const h = now.getHours();
+            document.body.classList.toggle("day", h >= 7 && h < 19);
+            document.body.classList.toggle("night", !(h >= 7 && h < 19));
+            document.getElementById("clock").textContent = now.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
+            document.getElementById("dateLine").textContent = now.toLocaleDateString("de-AT", { weekday: "long", day: "2-digit", month: "long" });
+        }
+
+        document.querySelectorAll(".tab").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+                document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+                btn.classList.add("active");
+                const view = document.getElementById("view-" + btn.dataset.view);
+                view.classList.add("active");
+                if (btn.dataset.view === "routen" && !document.getElementById("routes").dataset.loaded) {
+                    document.getElementById("routes").dataset.loaded = "1";
+                    ladeRouten();
+                }
+            });
+        });
+
+        /* ============================================================
+           START
+        ============================================================ */
+        tickUhr();
+        setInterval(tickUhr, 1000);
+
+        ladeAbfahrten();
+        setInterval(ladeAbfahrten, 15000);
+
+        ladeRouten();               // schon im Hintergrund vorladen
+        document.getElementById("routes").dataset.loaded = "1";
+        setInterval(ladeRouten, 60000);
+        setInterval(tickLeaveTimes, 1000);
     </script>
 </body>
 
